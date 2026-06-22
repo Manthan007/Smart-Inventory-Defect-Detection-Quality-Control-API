@@ -7,14 +7,12 @@ data_ingestion:
   unzip_dir: artifacts/data_ingestion
 
 data:
-  train_csv: artifacts/data_ingestion/train.train_csv
+  train_csv: artifacts/data_ingestion/train.csv
   train_images_path: artifacts/data_ingestion/train_images
   test_images_path: artifacts/data_ingestion/test_images
-
 image:
   height: 256
   width: 1600
   num_classes: 4
-
 rle:
-  order: 4
+  order: F

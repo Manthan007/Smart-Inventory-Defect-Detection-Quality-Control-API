@@ -1,5 +1,5 @@
-from src.SIDD.pipeline.stage_01_data_ingestion import DataIngestionTrainingPipeline
-from src.SIDD import logger
+from SIDD.pipeline.stage_01_data_ingestion import DataIngestionTrainingPipeline
+from SIDD import logger
 
 STAGE_NAME = "data ingestion stage"
 

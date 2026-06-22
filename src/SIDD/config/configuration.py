@@ -1,6 +1,6 @@
 from SIDD.utils.common import read_yaml, create_directories
 from SIDD.constants import *
-from SIDD.entity.config_entity import DataIngestionConfig
+from SIDD.entity.config_entity import DataIngestionConfig, EDAConfig
 
 class ConfigurationManager:
     def __init__(
@@ -25,3 +25,19 @@ class ConfigurationManager:
         )
 
         return data_ingestion_config
+    
+
+    def get_eda_config(self) -> EDAConfig:
+        config = self.config.data
+
+        eda_config = EDAConfig(
+            train_csv=config.train_csv,
+            train_images_path=config.train_images_path,
+            test_images_path=config.test_images_path,
+            height=self.config.image.height,
+            width=self.config.image.width,
+            num_classes=self.config.image.num_classes,
+            order=self.config.rle.order
+        )
+
+        return eda_config

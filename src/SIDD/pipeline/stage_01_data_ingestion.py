@@ -1,6 +1,6 @@
 from SIDD import logger
-from src.SIDD.components.data_ingestion import DataIngestion
-from src.SIDD.config.configuration import ConfigurationManager
+from SIDD.components.data_ingestion import DataIngestion
+from SIDD.config.configuration import ConfigurationManager
 
 
 STAGE_NAME = "Data Ingestion stage"
