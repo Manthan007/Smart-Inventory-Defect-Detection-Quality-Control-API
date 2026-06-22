@@ -5,3 +5,16 @@ data_ingestion:
   source_URL: https://drive.google.com/file/d/1uaTm1Ba4o_RQO-C_6oiAfNRUVYkaNmIp/view?usp=sharing
   local_data_file: artifacts/data_ingestion/severstal-steel-defect-detection.zip
   unzip_dir: artifacts/data_ingestion
+
+data:
+  train_csv: artifacts/data_ingestion/train.train_csv
+  train_images_path: artifacts/data_ingestion/train_images
+  test_images_path: artifacts/data_ingestion/test_images
+
+image:
+  height: 256
+  width: 1600
+  num_classes: 4
+
+rle:
+  order: 4
