@@ -1,0 +1,22 @@
+pandas 
+numpy
+dvc
+notebook
+matplotlib
+seaborn
+python-box
+pyYAML
+tqdm
+ensure
+joblib
+types-pyYAML
+scipy
+setuptools
+requests 
+gdown
+scikit-learn
+mlflow
+torch
+dagshub
+streamlit
+-e .
