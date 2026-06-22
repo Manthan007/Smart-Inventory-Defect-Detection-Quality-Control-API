@@ -1,7 +1,7 @@
 import os
 from box.exceptions import BoxValueError
 import yaml
-from pifo import logger
+from SIDD import logger
 import json
 import joblib
 from ensure import ensure_annotations

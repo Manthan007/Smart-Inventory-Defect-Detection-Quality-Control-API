@@ -17,6 +17,9 @@ gdown
 scikit-learn
 mlflow
 torch
+torchvision 
+torchaudio 
 dagshub
 streamlit
+opencv-python
 -e .
