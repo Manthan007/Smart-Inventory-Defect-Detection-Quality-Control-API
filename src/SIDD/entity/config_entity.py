@@ -16,4 +16,13 @@ class EDAConfig:
     height: int
     width: int
     num_classes: int
-    order: str
+
+@dataclass(frozen=True)
+class DataPreparationConfig:
+    train_csv_path: Path
+    train_images_path: Path
+    batch_size: int
+    height: int
+    width: int
+    num_classes: int
+    num_workers: int
