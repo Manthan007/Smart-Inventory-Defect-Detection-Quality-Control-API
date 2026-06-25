@@ -1,1 +1,3 @@
-key: val
+data_preparation:
+  batch_size: 16
+  num_workers: 3

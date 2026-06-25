@@ -14,5 +14,10 @@ image:
   height: 256
   width: 1600
   num_classes: 4
-rle:
-  order: F
+
+data_preparation:
+  train_csv_path: artifacts/data_ingestion/train.csv
+  train_images_path: artifacts/data_ingestion/train_images
+  height: 256
+  width: 1600
+  num_classes: 4

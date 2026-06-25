@@ -22,4 +22,5 @@ torchaudio
 dagshub
 streamlit
 opencv-python
+albumentations
 -e .
