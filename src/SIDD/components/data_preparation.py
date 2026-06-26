@@ -6,8 +6,10 @@ from torch.utils.data import Dataset
 from torchvision import datasets
 from torchvision.transforms import v2
 import cv2
+cv2.setNumThreads(0)
 from torch.utils.data import DataLoader
 from sklearn.model_selection import train_test_split
+
 import albumentations as A
 from albumentations.pytorch import ToTensorV2
 
@@ -41,35 +43,70 @@ m_transform = A.Compose([
 class DataPreparation:
     def __init__(self, config: DataPreparationConfig):
         self.config = config
+        self.df = pd.read_csv(self.config.train_csv_path)
+        self.grouped = self.df.groupby("ImageId")
+        self.image_annotations = {}
+
+        for image_id, group in self.grouped:
+            annotations = []
+            for _, row in group.iterrows():
+                if not pd.isna(row["EncodedPixels"]):
+                    annotations.append((row["ClassId"], row["EncodedPixels"]))
+            
+            self.image_annotations[image_id] = annotations
+
+
+        self.image_ids = sorted(self.df["ImageId"].unique())
     
     def get_dataloaders(self):
 
-        df = pd.read_csv(self.config.train_csv_path)
+        train_ids, test_ids = train_test_split(
+            self.image_ids,
+            test_size=0.2,
+            random_state=42
+        )
 
-        train_df, test_df = train_test_split(df, test_size=0.2, random_state=42)
+        print("Total images:", len(self.image_ids))
+        print("Train images:", len(train_ids))
+        print("Test images:", len(test_ids))
 
         train_dataset = ImageDataset(
-            train_df,
-            self.config.train_images_path,
-            self.config.height,
-            self.config.width,
-            self.config.num_classes,
-            i_transform,
-            m_transform
+            image_annotations=self.image_annotations,
+            image_ids=train_ids,
+            image_path=self.config.train_images_path,
+            height=self.config.height,
+            width=self.config.width,
+            num_classes=self.config.num_classes,
+            image_transform=i_transform,
+            mask_transform=m_transform
         )
 
         test_dataset = ImageDataset(
-            test_df,
-            self.config.train_images_path,
-            self.config.height,
-            self.config.width,
-            self.config.num_classes,
-            i_transform,
-            m_transform
+            image_annotations=self.image_annotations,
+            image_ids=test_ids,
+            image_path=self.config.train_images_path,
+            height=self.config.height,
+            width=self.config.width,
+            num_classes=self.config.num_classes,
+            image_transform=i_transform,
+            mask_transform=m_transform
         )
 
-        train_loader = DataLoader(train_dataset, batch_size=64, shuffle=True, num_workers=self.config.num_workers, pin_memory=True)
-        test_loader = DataLoader(test_dataset, batch_size=64, shuffle=False, num_workers=self.config.num_workers, pin_memory=True)
+        train_loader = DataLoader(
+            train_dataset,
+            batch_size=self.config.batch_size,
+            shuffle=True,
+            num_workers=self.config.num_workers,
+            pin_memory=True
+        )
+
+        test_loader = DataLoader(
+            test_dataset,
+            batch_size=self.config.batch_size,
+            shuffle=False,
+            num_workers=self.config.num_workers,
+            pin_memory=True
+        )
 
         return train_loader, test_loader
     
@@ -79,11 +116,13 @@ class ImageDataset(Dataset):
     def get_image(self, image_id):
         path = Path(self.image_path) / image_id
         image = cv2.imread(str(path))
+
         if image is None:
             raise FileNotFoundError(f"Image not found: {path}")
+
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         return image
-    
+        
     def create_empty_mask(self):
         return np.zeros((self.height, self.width, self.num_classes), dtype=np.uint8)
     
@@ -104,58 +143,68 @@ class ImageDataset(Dataset):
     
     def create_mask(self, image_id):
 
-        if image_id not in self.grouped.groups:
-            return self.create_empty_mask()
-        
-        mask = self.create_empty_mask()
-        group = self.grouped.get_group(image_id)
+        mask = np.zeros((self.height, self.width, self.num_classes), dtype=np.uint8)
 
-        for _, row in group.iterrows():
-            class_id = row["ClassId"]
-            rle = row["EncodedPixels"]
+        if image_id in self.image_annotations:
+            for class_id, rle in self.image_annotations[image_id]:
+                single_mask = self.rle_decode(rle, (self.height, self.width))
+                mask[:, :, class_id-1] = single_mask
+        return mask        
 
-            if pd.isna(rle):
-                continue
+    def __init__(
+        self,
+        image_annotations,
+        image_ids,
+        image_path,
+        height,
+        width,
+        num_classes,
+        image_transform=None,
+        mask_transform=None
+    ):
+        self.image_annotations = image_annotations
 
-            single_mask = self.rle_decode(rle, (self.height, self.width))
+        self.image_ids = sorted(image_ids)
 
-            mask[:, :, class_id - 1] = single_mask
-
-        return mask
-    
-
-    def __init__(self, df, image_path, height, width, num_classes, image_transform=None, mask_transform=None):
-        self.df = df
-        self.image_ids = sorted(self.df["ImageId"].unique())
         self.image_path = image_path
         self.image_transform = image_transform
         self.mask_transform = mask_transform
-        self.grouped = self.df.groupby("ImageId")
-        self.height = height   
-        self.width = width     
-        self.num_classes = num_classes  
+
+        self.height = height
+        self.width = width
+        self.num_classes = num_classes
 
     
     def __len__(self):
         return len(self.image_ids)
     
     def __getitem__(self, index):
+
         image_id = self.image_ids[index]
+
         image = self.get_image(image_id)
         mask = self.create_mask(image_id)
+
         if self.image_transform is not None:
-            augmented = self.image_transform(image=image, mask=mask)
+            augmented = self.image_transform(
+                image=image,
+                mask=mask
+            )
+
             image = augmented["image"].float()
             mask = augmented["mask"].float()
-        
+
+            mask = mask.permute(2, 0, 1)
+
         return image, mask
     
 
-try:
-    config = ConfigurationManager()
-    data_prep_config = config.get_data_preparation_config()
-    data_prep = DataPreparation(config=data_prep_config)
-    (train_loader, test_loader) = data_prep.get_dataloaders()
-    logger.info("Train and Test DataLoader has been created")
-except Exception as e:
-    raise e
+if __name__ == '__main__':
+    try:
+        config = ConfigurationManager()
+        data_prep_config = config.get_data_preparation_config()
+        data_prep = DataPreparation(config=data_prep_config)
+        (train_loader, test_loader) = data_prep.get_dataloaders()
+        logger.info("Train and Test DataLoader has been created")
+    except Exception as e:
+        raise e
