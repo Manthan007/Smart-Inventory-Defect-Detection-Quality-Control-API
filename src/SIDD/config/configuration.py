@@ -1,6 +1,6 @@
 from SIDD.utils.common import read_yaml, create_directories
 from SIDD.constants import *
-from SIDD.entity.config_entity import DataIngestionConfig, DataPreparationConfig, EDAConfig
+from SIDD.entity.config_entity import DataIngestionConfig, DataPreparationConfig, EDAConfig, ModelBuildingConfig
 
 class ConfigurationManager:
     def __init__(
@@ -57,3 +57,16 @@ class ConfigurationManager:
         )
 
         return data_preparation_config
+    
+    def get_model_building_config(self) -> ModelBuildingConfig:
+        config = self.config.model_building
+        params = self.params.model_building
+
+        model_building_config = ModelBuildingConfig(
+            root_dir=config.root_dir,
+            in_channels=config.in_channels,
+            out_channels=config.out_channels,
+            features=params.features
+        )
+
+        return model_building_config

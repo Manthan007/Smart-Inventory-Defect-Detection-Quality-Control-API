@@ -26,3 +26,10 @@ class DataPreparationConfig:
     width: int
     num_classes: int
     num_workers: int
+
+@dataclass(frozen=True)
+class ModelBuildingConfig:
+    root_dir: Path
+    in_channels: int
+    out_channels: int
+    features: list

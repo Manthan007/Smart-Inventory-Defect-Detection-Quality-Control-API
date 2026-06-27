@@ -21,3 +21,8 @@ data_preparation:
   height: 256
   width: 1600
   num_classes: 4
+
+model_building:
+  root_dir: artifacts/model_building
+  in_channels: 3
+  out_channels: 4
