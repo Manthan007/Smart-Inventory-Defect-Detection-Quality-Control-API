@@ -26,3 +26,6 @@ model_building:
   root_dir: artifacts/model_building
   in_channels: 3
   out_channels: 4
+
+loss_and_metrics:
+  smooth: 1e-6

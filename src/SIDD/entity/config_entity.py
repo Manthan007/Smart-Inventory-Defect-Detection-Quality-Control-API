@@ -33,3 +33,7 @@ class ModelBuildingConfig:
     in_channels: int
     out_channels: int
     features: list
+
+@dataclass(frozen=True)
+class LossMetricsConfig:
+    smooth: float

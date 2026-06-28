@@ -1,6 +1,6 @@
 from SIDD.utils.common import read_yaml, create_directories
 from SIDD.constants import *
-from SIDD.entity.config_entity import DataIngestionConfig, DataPreparationConfig, EDAConfig, ModelBuildingConfig
+from SIDD.entity.config_entity import DataIngestionConfig, DataPreparationConfig, EDAConfig, LossMetricsConfig, ModelBuildingConfig
 
 class ConfigurationManager:
     def __init__(
@@ -70,3 +70,13 @@ class ConfigurationManager:
         )
 
         return model_building_config
+    
+
+    def get_loss_metrics_config(self) -> LossMetricsConfig:
+        config = self.config.loss_and_metrics
+
+        loss_metrics_config = LossMetricsConfig(
+            smooth=config.smooth
+        )
+
+        return loss_metrics_config
