@@ -1,8 +1,6 @@
 import torch
 from torch import optim
 
-# from SIDD.entity.config_entity import ModelTrainingConfig
-
 
 class ModelTraining:
     def __init__(
@@ -12,10 +10,9 @@ class ModelTraining:
         train_loader,
         val_loader,
         criterion,
-    ):   
-        
+    ):
+
         self.config = config
-            
         self.model = model
         self.train_loader = train_loader
         self.val_loader = val_loader
@@ -27,7 +24,7 @@ class ModelTraining:
 
         self.model.to(self.device)
 
-        self.optimizer = optim.Adam(
+        self.optimizer = optim.AdamW(
             self.model.parameters(),
             lr=self.config.learning_rate,
             weight_decay=self.config.weight_decay
@@ -38,59 +35,45 @@ class ModelTraining:
             T_max=self.config.epochs
         )
 
+        self.scaler = torch.cuda.amp.GradScaler()
 
     def train_one_epoch(self):
-        import time
 
         self.model.train()
-
-        print(f"\nTraining on device : {self.device}")
-        print(f"Model device       : {next(self.model.parameters()).device}")
 
         running_loss = 0.0
 
         for batch_idx, (images, masks) in enumerate(self.train_loader):
 
-            batch_start = time.time()
+            images = images.to(self.device, non_blocking=True)
+            masks = masks.to(self.device, non_blocking=True)
 
-            images = images.to(self.device)
-            masks = masks.to(self.device)
+            self.optimizer.zero_grad(set_to_none=True)
 
-            data_end = time.time()
+            with torch.cuda.amp.autocast():
 
-            self.optimizer.zero_grad()
+                outputs = self.model(images)
 
-            outputs = self.model(images)
+                loss = self.criterion(outputs, masks)
 
-            forward_end = time.time()
-
-            loss = self.criterion(outputs, masks)
-
-            loss.backward()
-
-            self.optimizer.step()
-
-            backward_end = time.time()
+            self.scaler.scale(loss).backward()
+            self.scaler.step(self.optimizer)
+            self.scaler.update()
 
             running_loss += loss.item()
 
-            print(
-                f"Batch {batch_idx:02d} | "
-                f"Data: {data_end - batch_start:.3f}s | "
-                f"Forward: {forward_end - data_end:.3f}s | "
-                f"Backward: {backward_end - forward_end:.3f}s | "
-                f"Loss: {loss.item():.4f}"
-            )
+            if (batch_idx + 1) % 50 == 0:
+                print(
+                    f"Batch [{batch_idx + 1}/{len(self.train_loader)}] "
+                    f"Loss: {loss.item():.4f}"
+                )
 
-            # Debug only
-            if batch_idx == 2:
-                break
-
-        epoch_loss = running_loss / (batch_idx + 1)
+        epoch_loss = running_loss / len(self.train_loader)
 
         return epoch_loss
 
     def validate(self):
+
         self.model.eval()
 
         running_loss = 0.0
@@ -99,12 +82,14 @@ class ModelTraining:
 
             for images, masks in self.val_loader:
 
-                images = images.to(self.device)
-                masks = masks.to(self.device)
+                images = images.to(self.device, non_blocking=True)
+                masks = masks.to(self.device, non_blocking=True)
 
-                outputs = self.model(images)
+                with torch.cuda.amp.autocast():
 
-                loss = self.criterion(outputs, masks)
+                    outputs = self.model(images)
+
+                    loss = self.criterion(outputs, masks)
 
                 running_loss += loss.item()
 
@@ -124,10 +109,13 @@ class ModelTraining:
 
             self.scheduler.step()
 
+            current_lr = self.optimizer.param_groups[0]["lr"]
+
             print(
-                f"Epoch [{epoch+1}/{self.config.epochs}] "
-                f"Train Loss: {train_loss:.4f} "
-                f"Val Loss: {val_loss:.4f}"
+                f"Epoch [{epoch + 1}/{self.config.epochs}] | "
+                f"Train Loss: {train_loss:.4f} | "
+                f"Val Loss: {val_loss:.4f} | "
+                f"LR: {current_lr:.6f}"
             )
 
             if val_loss < best_loss:
@@ -139,5 +127,4 @@ class ModelTraining:
                     self.config.model_path
                 )
 
-        print("Training Completed!")
-        
+        print("\nTraining Completed!")

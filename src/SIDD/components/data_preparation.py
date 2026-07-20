@@ -45,46 +45,46 @@ class DataPreparation:
         self.config = config
         self.df = pd.read_csv(self.config.train_csv_path)
 
-        # 1. Gather all unique image IDs that contain defects from the CSV
-        images_with_defects = self.df[self.df['EncodedPixels'].notna() & (self.df['EncodedPixels'] != '')]
-        defect_images_list = images_with_defects['ImageId'].unique()
+        # # 1. Gather all unique image IDs that contain defects from the CSV
+        # images_with_defects = self.df[self.df['EncodedPixels'].notna() & (self.df['EncodedPixels'] != '')]
+        # defect_images_list = images_with_defects['ImageId'].unique()
         
-        # 2. Extract clean images directly from your input images directory
-        all_physical_images = np.array([f.name for f in Path(self.config.train_images_path).glob("*.jpg")])
-        clean_images_list = np.setdiff1d(all_physical_images, defect_images_list)
+        # # 2. Extract clean images directly from your input images directory
+        # all_physical_images = np.array([f.name for f in Path(self.config.train_images_path).glob("*.jpg")])
+        # clean_images_list = np.setdiff1d(all_physical_images, defect_images_list)
 
-        # 3. Create the defect buckets from the CSV
-        class_1_imgs = images_with_defects[images_with_defects['ClassId'] == 1]['ImageId'].unique()
-        class_2_imgs = images_with_defects[images_with_defects['ClassId'] == 2]['ImageId'].unique()
-        class_3_imgs = images_with_defects[images_with_defects['ClassId'] == 3]['ImageId'].unique()
-        class_4_imgs = images_with_defects[images_with_defects['ClassId'] == 4]['ImageId'].unique()
+        # # 3. Create the defect buckets from the CSV
+        # class_1_imgs = images_with_defects[images_with_defects['ClassId'] == 1]['ImageId'].unique()
+        # class_2_imgs = images_with_defects[images_with_defects['ClassId'] == 2]['ImageId'].unique()
+        # class_3_imgs = images_with_defects[images_with_defects['ClassId'] == 3]['ImageId'].unique()
+        # class_4_imgs = images_with_defects[images_with_defects['ClassId'] == 4]['ImageId'].unique()
 
-        # 4. Stratified sampling with a guaranteed seed
-        np.random.seed(42)
-        sampled_c1 = np.random.choice(class_1_imgs, size=200, replace=False)
-        sampled_c2 = np.random.choice(class_2_imgs, size=min(200, len(class_2_imgs)), replace=False)
-        sampled_c3 = np.random.choice(class_3_imgs, size=200, replace=False)
-        sampled_c4 = np.random.choice(class_4_imgs, size=200, replace=False)
+        # # 4. Stratified sampling with a guaranteed seed
+        # np.random.seed(42)
+        # sampled_c1 = np.random.choice(class_1_imgs, size=200, replace=False)
+        # sampled_c2 = np.random.choice(class_2_imgs, size=min(200, len(class_2_imgs)), replace=False)
+        # sampled_c3 = np.random.choice(class_3_imgs, size=200, replace=False)
+        # sampled_c4 = np.random.choice(class_4_imgs, size=200, replace=False)
         
-        # This will now succeed because clean_images_list contains the thousands of flawless images
-        sampled_clean = np.random.choice(clean_images_list, size=200, replace=False)
+        # # This will now succeed because clean_images_list contains the thousands of flawless images
+        # sampled_clean = np.random.choice(clean_images_list, size=200, replace=False)
 
-        # 5. Collect unique target IDs
-        final_image_ids = np.concatenate([sampled_c1, sampled_c2, sampled_c3, sampled_c4, sampled_clean])
-        final_image_ids = np.unique(final_image_ids)
+        # # 5. Collect unique target IDs
+        # final_image_ids = np.concatenate([sampled_c1, sampled_c2, sampled_c3, sampled_c4, sampled_clean])
+        # final_image_ids = np.unique(final_image_ids)
 
-        # Top up with clean images if minor overlaps drop the unique count slightly below 1000
-        if len(final_image_ids) < 1000:
-            extra_needed = 1000 - len(final_image_ids)
-            remaining_clean = np.setdiff1d(clean_images_list, final_image_ids)
-            extra_clean = np.random.choice(remaining_clean, size=extra_needed, replace=False)
-            final_image_ids = np.concatenate([final_image_ids, extra_clean])
+        # # Top up with clean images if minor overlaps drop the unique count slightly below 1000
+        # if len(final_image_ids) < 1000:
+        #     extra_needed = 1000 - len(final_image_ids)
+        #     remaining_clean = np.setdiff1d(clean_images_list, final_image_ids)
+        #     extra_clean = np.random.choice(remaining_clean, size=extra_needed, replace=False)
+        #     final_image_ids = np.concatenate([final_image_ids, extra_clean])
 
-        # Overwrite self.image_ids with exactly 1,000 perfectly balanced IDs
-        self.image_ids = sorted(list(final_image_ids))
+        # # Overwrite self.image_ids with exactly 1,000 perfectly balanced IDs
+        # self.image_ids = sorted(list(final_image_ids))
         
-        # Filter down the master dataframe to only keep entries for these 1,000 images
-        self.df = self.df[self.df['ImageId'].isin(self.image_ids)].reset_index(drop=True)
+        # # Filter down the master dataframe to only keep entries for these 1,000 images
+        # self.df = self.df[self.df['ImageId'].isin(self.image_ids)].reset_index(drop=True)
 
         self.grouped = self.df.groupby("ImageId")
         self.image_annotations = {}
@@ -138,7 +138,7 @@ class DataPreparation:
             train_dataset,
             batch_size=self.config.batch_size,
             shuffle=True,
-            num_workers=self.config.num_workers,
+            num_workers=2,
             pin_memory=True
         )
 
@@ -146,7 +146,7 @@ class DataPreparation:
             test_dataset,
             batch_size=self.config.batch_size,
             shuffle=False,
-            num_workers=self.config.num_workers,
+            num_workers=2,
             pin_memory=True
         )
 
