@@ -1,6 +1,6 @@
 from SIDD.utils.common import read_yaml, create_directories
 from SIDD.constants import *
-from SIDD.entity.config_entity import DataIngestionConfig, DataPreparationConfig, EDAConfig, LossMetricsConfig, ModelBuildingConfig
+from SIDD.entity.config_entity import DataIngestionConfig, DataPreparationConfig, EDAConfig, LossMetricsConfig, ModelBuildingConfig, ModelTrainingConfig
 
 class ConfigurationManager:
     def __init__(
@@ -80,3 +80,22 @@ class ConfigurationManager:
         )
 
         return loss_metrics_config
+    
+
+    def get_model_training_config(self) -> ModelTrainingConfig:
+        config = self.config.model_training
+        params = self.params.model_training
+
+        create_directories([config.root_dir])
+
+        model_training_config = ModelTrainingConfig(
+            root_dir=Path(config.root_dir),
+            batch_size=params.batch_size,
+            epochs=params.epochs,
+            learning_rate=params.learning_rate,
+            weight_decay=params.weight_decay,
+            lr_scheduler=params.lr_scheduler,
+            model_path=Path(config.model_path)
+        )
+
+        return model_training_config

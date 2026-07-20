@@ -37,3 +37,13 @@ class ModelBuildingConfig:
 @dataclass(frozen=True)
 class LossMetricsConfig:
     smooth: float
+
+@dataclass(frozen=True)
+class ModelTrainingConfig:
+    root_dir: Path
+    batch_size: int
+    epochs: int
+    learning_rate: float
+    weight_decay: float
+    lr_scheduler: str
+    model_path: Path

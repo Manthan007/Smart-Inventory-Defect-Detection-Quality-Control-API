@@ -5,9 +5,9 @@ data_preparation:
 model_building:
   features: [16, 32, 64]
 
-training:
+model_training:
   batch_size: 4             
-  epochs: 20                
+  epochs: 1              
   learning_rate: 0.001      
   weight_decay: 0.0001      
   lr_scheduler: "CosineAnnealingLR"

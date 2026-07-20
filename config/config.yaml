@@ -29,3 +29,7 @@ model_building:
 
 loss_and_metrics:
   smooth: 1e-6
+
+model_training:
+  root_dir: artifacts/model_training
+  model_path: artifacts/model_training/best_model.pth
