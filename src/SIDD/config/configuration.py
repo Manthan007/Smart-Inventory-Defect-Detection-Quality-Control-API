@@ -1,6 +1,7 @@
 from SIDD.utils.common import read_yaml, create_directories
 from SIDD.constants import *
-from SIDD.entity.config_entity import DataIngestionConfig, DataPreparationConfig, EDAConfig, LossMetricsConfig, ModelBuildingConfig, ModelTrainingConfig
+from SIDD.entity.config_entity import DataIngestionConfig, DataPreparationConfig, EDAConfig, LossMetricsConfig, ModelBuildingConfig, ModelEvaluationConfig, ModelTrainingConfig
+from pathlib import Path
 
 class ConfigurationManager:
     def __init__(
@@ -99,3 +100,16 @@ class ConfigurationManager:
         )
 
         return model_training_config
+
+
+    def get_model_evaluation_config(self) -> ModelEvaluationConfig:
+            config = self.config.model_evaluation
+
+            create_directories([config.root_dir])
+
+            model_evaluation_config = ModelEvaluationConfig(
+                root_dir=Path(config.root_dir),
+                model_path=Path(config.model_path)
+            )
+
+            return model_evaluation_config

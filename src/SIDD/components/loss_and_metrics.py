@@ -170,11 +170,5 @@ try:
         dummy_target
     )
 
-    print(f"Loss       : {loss:.4f}")
-    print(f"Dice Score : {dice:.4f}")
-    print(f"IoU Score  : {iou:.4f}")
-
-    print(loss.requires_grad)
-
 except Exception as e:
     raise e

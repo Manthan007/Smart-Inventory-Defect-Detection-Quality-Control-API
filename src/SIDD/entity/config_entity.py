@@ -47,3 +47,8 @@ class ModelTrainingConfig:
     weight_decay: float
     lr_scheduler: str
     model_path: Path
+
+@dataclass
+class ModelEvaluationConfig:
+    root_dir: Path
+    model_path: Path

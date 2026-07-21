@@ -36,4 +36,4 @@ model_training:
 
 model_evaluation:
   root_dir: artifacts/model_evaluation
-  model_path: artifacts/model_training/best_model.pth
+  model_path: artifacts/model_training/best_model.pth 

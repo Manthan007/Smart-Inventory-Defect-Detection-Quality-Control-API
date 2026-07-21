@@ -93,8 +93,6 @@ try:
 
     output = model(dummy)
 
-    print(f"Input Shape : {dummy.shape}")
-    print(f"Output Shape: {output.shape}")
     
 except Exception as e:
     raise e
