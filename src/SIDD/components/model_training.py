@@ -50,7 +50,7 @@ class ModelTraining:
 
             self.optimizer.zero_grad(set_to_none=True)
 
-            with torch.cuda.amp.autocast():
+            with torch.amp.autocast("cuda"):
 
                 outputs = self.model(images)
 
@@ -85,7 +85,7 @@ class ModelTraining:
                 images = images.to(self.device, non_blocking=True)
                 masks = masks.to(self.device, non_blocking=True)
 
-                with torch.cuda.amp.autocast():
+                with torch.amp.autocast("cuda"):
 
                     outputs = self.model(images)
 
