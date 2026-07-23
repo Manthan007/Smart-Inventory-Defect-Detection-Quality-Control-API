@@ -1,0 +1,51 @@
+stages:
+
+  data_ingestion:
+    cmd: python src/SIDD/pipeline/stage_01_data_ingestion.py
+
+    deps:
+      - src/SIDD/pipeline/stage_01_data_ingestion.py
+      - config/config.yaml
+
+    outs:
+      - artifacts/data_ingestion
+
+
+  model_training:
+    cmd: python src/SIDD/pipeline/stage_02_model_training.py
+
+    deps:
+      - src/SIDD/pipeline/stage_02_model_training.py
+
+      - artifacts/data_ingestion
+
+      - config/config.yaml
+      - params.yaml
+
+      - src/SIDD/components/data_preparation.py
+      - src/SIDD/components/model_building.py
+      - src/SIDD/components/loss_and_metrics.py
+      - src/SIDD/components/model_training.py
+
+    outs:
+      - artifacts/model_training/best_model.pth
+
+
+  model_evaluation:
+    cmd: python src/SIDD/pipeline/stage_03_model_evaluation.py
+
+    deps:
+      - src/SIDD/pipeline/stage_03_model_evaluation.py
+
+      - artifacts/model_training/best_model.pth
+
+      - config/config.yaml
+      - params.yaml
+
+      - src/SIDD/components/data_preparation.py
+      - src/SIDD/components/model_building.py
+      - src/SIDD/components/loss_and_metrics.py
+      - src/SIDD/components/model_evaluation.py
+
+    outs:
+      - artifacts/model_evaluation/metrics.json

@@ -1,3 +1,10 @@
 /config.local
 /tmp
 /cache
+artifacts/
+
+*.pth
+
+__pycache__/
+
+*.pyc
